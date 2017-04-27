@@ -1,9 +1,9 @@
 {
   "development": {
     "note": "Out of the box, the predix-seed app uses mock data, so these values are not required.  Set these values for connecting to real Predix services.",
-    "clientId": "{UAA Client ID created}",
-    "uaaURL": "{The UAA URI end point to get auth token }",
-    "base64ClientCredential": "{Get clientID:clientSecret then base64 encode and place it here}",
+    "clientId": "sfsu",
+    "uaaURL": "https://ae971477-b042-477e-86de-d00f9e10ce63.predix-uaa.run.aws-usw02-pr.ice.predix.io",
+    "base64ClientCredential": "c2ZzdTpzZnN1",
     "appURL": "http://localhost:5000",
     "timeseriesURL": "{Time Series URL from VCAPS}",
     "timeseriesZoneId": "{The Zone ID for the Timeseries Service Created}",

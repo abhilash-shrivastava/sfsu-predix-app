@@ -59,5 +59,8 @@
     "px-buttons-design": "^1.1.2",
     "px-actionable-text-icons-design": "^1.1.1",
     "px-spacing-design": "^0.4.1"
+  },
+  "resolutions": {
+    "px-dropdown": "^3.1.0"
   }
 }

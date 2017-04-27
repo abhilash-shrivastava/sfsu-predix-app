@@ -1,6 +1,6 @@
 ---
 applications:
-  - name: predix-ui-seed
+  - name: predix-sfsu-app
     memory: 64M
     buildpack: nodejs_buildpack
     command: node server/app.js
@@ -13,6 +13,6 @@ env:
     node_env: cloud
     uaa_service_label : predix-uaa
     # Add these values for authentication in the cloud
-    #clientId: {Enter client ID, e.g. app-client-id, and place it here}
-    #base64ClientCredential: dWFhLWNsaWVudC1pZDp1YWEtY2xpZW50LWlkLXNlY3JldA==
+    clientId: sfsu
+    base64ClientCredential: c2ZzdTpzZnN1
     #windServiceURL: "{URL of the microservice <your-name>-winddata-timeseries-service}, e.g.  https://your-name-winddata-timeseries-service.run.asw-usw02-pr.predix.io"
