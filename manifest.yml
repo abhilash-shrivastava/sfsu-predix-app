@@ -13,6 +13,6 @@ env:
     node_env: cloud
     uaa_service_label : predix-uaa
     # Add these values for authentication in the cloud
-    clientId: sfsu
-    base64ClientCredential: c2ZzdTpzZnN1
+    clientId: sfsu_client
+    base64ClientCredential: c2ZzdV9jbGllbnQ6c2ZzdV9jbGllbnQ=
     #windServiceURL: "{URL of the microservice <your-name>-winddata-timeseries-service}, e.g.  https://your-name-winddata-timeseries-service.run.asw-usw02-pr.predix.io"
