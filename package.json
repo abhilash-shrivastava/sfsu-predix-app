@@ -49,6 +49,7 @@
     "express": "^4.14.0",
     "express-http-proxy": "^0.10.0",
     "express-session": "^1.14.1",
+    "follow-redirects": "^1.2.3",
     "glob": "^7.0.3",
     "https-proxy-agent": "^1.0.0",
     "json-server": "^0.8.10",
