@@ -18,6 +18,7 @@ var proxy = require('./proxy'); // used when requesting data from real services.
 var config = require('./predix-config');
 // configure passport for authentication with UAA
 var passportConfig = require('./passport-config');
+var parking = require('./parking');
 
 // if running locally, we need to set up the proxy from local config file:
 var node_env = process.env.node_env || 'development';
@@ -146,9 +147,14 @@ app.get('/logout', function(req, res) {
   passportConfig.reset(); //reset auth tokens
   res.redirect(config.uaaURL + '/logout?redirect=' + config.appURL);
 });
-
 app.get('/favicon.ico', function (req, res) {
-	res.send('favicon.ico');
+	res.send('favicon.ic');
+});
+
+app.get('/parking', function (req, res) {
+	parking().then((results) => {
+    res.send(results);
+	})
 });
 
 // Sample route middleware to ensure user is authenticated.
