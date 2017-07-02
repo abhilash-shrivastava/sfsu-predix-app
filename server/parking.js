@@ -12,7 +12,7 @@ execute=anonymous
   });
 var report = [];
 
-module.exports = function () {
+module.exports = function (lat, lng) {
   return new Promise((resolve, reject) => {
     predix.initializeToken().then(() => {
       // get an instance of ParkingManager
@@ -21,6 +21,8 @@ module.exports = function () {
       // Specify location of the parking slot
       var boundary1 = "32.123:-117";
       var boundary2 = "32.714983:-117.158012";
+      // var boundary1 = lat.toString() + ':' + lng.toString();
+      // var boundary2 = (Number(lat) + .0005).toString() + ':' + (Number(lng) + .0005).toString();
 
       // To simplify, just get the first 20 parking spots at this location (if any)
       var options = {

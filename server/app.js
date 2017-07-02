@@ -152,7 +152,8 @@ app.get('/favicon.ico', function (req, res) {
 });
 
 app.get('/parking', function (req, res) {
-	parking().then((results) => {
+	console.log(req);
+	parking(req.query.lat, req.query.lng).then((results) => {
     res.send(results);
 	})
 });
