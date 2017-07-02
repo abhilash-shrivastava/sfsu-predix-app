@@ -141,10 +141,20 @@
             lng = Math.random() >= 0.5 ? (lng + (Math.floor(Math.random()*90000) + 10000)/100000000): (lng - (Math.floor(Math.random()*90000) + 10000)/100000000);
             var myLatLng = {lat: lat, lng: lng};
             console.log(myLatLng);
+            var title;
+            var icon;
+            if (Math.random() >= 0.5) {
+              title = 'Space Available';
+              icon = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            } else {
+              title = 'Space Not Available';
+              icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+            }
             var marker = new google.maps.Marker({
               position: myLatLng,
               map: map,
-              title: Math.random() >= 0.5 ? 'Space Available': 'Space Not Available'
+              title: title,
+              icon: icon
             });
           }
 //          httpCall(request).then((response) => {
