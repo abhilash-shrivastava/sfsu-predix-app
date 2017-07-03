@@ -63,15 +63,25 @@
             element-href="/elements/views/dashboards-view.html">
           </px-view>
 
-          <!-- /blankpage route and view -->
+          <!-- /parking route and view -->
           <app-route
             route="[[_route]]"
-            pattern="/blankpage"
-            active="{{_blankpageActive}}">
+            pattern="/parking"
+            active="{{_parkingActive}}">
           </app-route>
           <px-view
-            active="[[_blankpageActive]]"
-            element-href="/elements/views/blankpage-view.html">
+            active="[[_parkingActive]]"
+            element-href="/elements/views/parking-space.html">
+          </px-view>
+          <!-- /weather route and view -->
+          <app-route
+            route="[[_route]]"
+            pattern="/weather"
+            active="{{_weatherActive}}">
+          </app-route>
+          <px-view
+            active="[[_weatherActive]]"
+            element-href="/elements/views/weather-data.html">
           </px-view>
 
           <!-- /winddata route and view -->
@@ -131,12 +141,12 @@
           type: Array,
           value: function() {
             return [{
-              "label": "Dashboards",
-              "path": "/dashboards",
-              "icon": "fa-tachometer"
+              "label": "Parking Space",
+              "path": "/parking",
+              "icon": "fa-file"
             }, {
-              "label": "Blank Page",
-              "path": "/blankpage",
+              "label": "Weather",
+              "path": "/weather",
               "icon": "fa-file"
             }
             //Uncomment this block to show the Simple Asset navigation item on the menu.
@@ -202,7 +212,7 @@
         // set default route to /dashboards
         var l = window.location;
         if((l.hash === "#/" || l.hash === "") && l.pathname === "/") {
-          l.hash = "/dashboards";
+          l.hash = "/parking";
         }
       }
 
