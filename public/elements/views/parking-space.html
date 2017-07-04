@@ -129,7 +129,7 @@
                 lng: lng
               }
           });
-          for (var i = 0; i < 10; i++) {
+          for (var i = 0; i < 20; i++) {
             var myLatLng = randomGeo({lat: lat, lng: lng}, 200);
             setMarker(myLatLng, map, geocoder);
           }
@@ -179,32 +179,27 @@
         console.log(e.status + ' ' + e.statusText);
       };
       function setMarker(myLatLng, map, geocoder) {
-        geocoder.geocode({'location': myLatLng}, function(results, status) {
-          if (status === 'OK') {
-            if (results[1]) {
-              var infowindow = new google.maps.InfoWindow;
-              var title;
-              var icon;
-              if (Math.random() >= 0.5) {
-                title = 'Space Available';
-                icon = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-              } else {
-                title = 'Space Not Available';
-                icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
-              }
-              var marker = new google.maps.Marker({
-                position: myLatLng,
-                map: map,
-                title: title,
-                icon: icon
-              });
-              marker.addListener('click', function() {
-                infowindow.open(map, marker);
-              });
-              infowindow.setContent(results[1].formatted_address);
-            }
-          }
+        console.log(1);
+        var infowindow = new google.maps.InfoWindow;
+        var title;
+        var icon;
+        if (Math.random() >= 0.5) {
+          title = 'Space Available';
+          icon = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+        } else {
+          title = 'Space Not Available';
+          icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        }
+        var marker = new google.maps.Marker({
+          position: myLatLng,
+          map: map,
+          title: title,
+          icon: icon
         });
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+        infowindow.setContent(title);
       }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXd8KlVO4CH52NrFf1yrWQEbPJAd0Zjg4&libraries=places&callback=initMap"
