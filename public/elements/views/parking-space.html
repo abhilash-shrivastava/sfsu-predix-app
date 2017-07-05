@@ -82,6 +82,28 @@
         font-weight: 500;
         padding: 6px 12px;
       }
+      .vertical-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .horizontal-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
+      }
+      .details {
+        background: white;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: column;
+        width: 200px;
+        height: 500px;
+        display: none;
+      }
     </style>
     <div>
       <div id="title">
@@ -96,7 +118,15 @@
              placeholder="Enter a location">
     </div>
     </div>
-    <div id="map" style="width: 500px; height: 500px;"></div>
+    <div class="vertical-flex">
+      <div class="horizontal-flex">
+        <div id="map" style="width: 500px; height: 500px;"></div>
+        <div class="details">
+          <div>Available Parking Spaces: <span class="aps"></span></div>
+          <div>Availability Percentage : <span class="ap"></span></div>
+        </div>
+      </div>
+    </div>
     <div id="infowindow-content">
       <img src="" width="16" height="16" id="place-icon">
       <span id="place-name"  class="title"></span><br>
@@ -107,6 +137,8 @@
       // parameter when you first load the API. For example:
       // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
       const http = new XMLHttpRequest();
+      var availableParking = 0;
+      var totalParkingSpaces = 20;
       function initMap() {
         var card = document.getElementById('pac-card');
         var input = document.getElementById('pac-input');
@@ -133,6 +165,9 @@
             var myLatLng = randomGeo({lat: lat, lng: lng}, 200);
             setMarker(myLatLng, map, geocoder);
           }
+          $('.details').show();
+          $('.aps').html(availableParking);
+          $('.ap').html(Math.round((availableParking/totalParkingSpaces)*100) + '%')
           var request = {
             url: 'https://api.darksky.net/forecast/59e81c3cfd57f90ffd1a4a206dc134b8/' + lat +',' + lng,
             type: 'GET',
@@ -179,13 +214,13 @@
         console.log(e.status + ' ' + e.statusText);
       };
       function setMarker(myLatLng, map, geocoder) {
-        console.log(1);
         var infowindow = new google.maps.InfoWindow;
         var title;
         var icon;
         if (Math.random() >= 0.5) {
           title = 'Space Available';
           icon = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+          availableParking += 1;
         } else {
           title = 'Space Not Available';
           icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
