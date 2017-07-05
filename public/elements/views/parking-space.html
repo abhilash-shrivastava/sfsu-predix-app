@@ -124,6 +124,12 @@
         <div class="details">
           <div>Available Parking Spaces: <span class="aps"></span></div>
           <div>Availability Percentage : <span class="ap"></span></div>
+          <div>Weather Summery : <span class="summary"></span></div>
+          <div>Max Temperature : <span class="temperatureMax"></span></div>
+          <div>Min Temperature : <span class="temperatureMin"></span></div>
+          <div>Wind Speed : <span class="windSpeed"></span></div>
+          <div>Humidity : <span class="humidity"></span></div>
+
         </div>
       </div>
     </div>
@@ -181,7 +187,12 @@
             error: errorHandler,
             cache: true
           }).then((response) => {
-            console.log(response);
+            var todayWeatherData = response.daily.data[0];
+            $('.summary').html(todayWeatherData.summary);
+            $('.temperatureMax').html(todayWeatherData.temperatureMax + 'ºF');
+            $('.temperatureMin').html(todayWeatherData.temperatureMin + 'ºF');
+            $('.windSpeed').html(todayWeatherData.windSpeed + 'mph');
+            $('.humidity').html(todayWeatherData.humidity * 100 + '%')
           })
         });
       }
