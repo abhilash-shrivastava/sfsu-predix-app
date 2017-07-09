@@ -120,7 +120,7 @@
     </div>
     <div class="vertical-flex">
       <div class="horizontal-flex">
-        <div id="map" style="width: 500px; height: 500px;"></div>
+        <div id="parking" style="width: 500px; height: 500px;"></div>
         <div class="details">
           <div>Available Parking Spaces: <span class="aps"></span></div>
           <div>Availability Percentage : <span class="ap"></span></div>
@@ -130,6 +130,15 @@
           <div>Wind Speed : <span class="windSpeed"></span></div>
           <div>Humidity : <span class="humidity"></span></div>
 
+        </div>
+      </div>
+      <div class="horizontal-flex">
+        <div id="traffic" style="width: 500px; height: 500px;"></div>
+        <div class="details">
+          <div class="ttu">Traffic Towards University: <span class="vc"></span> - <span class="ts"></span></div>
+          <div class="tau">Traffic Away from University : <span class="vc"></span> - <span class="ts"></span></div>
+          <div class="ttuss">Traffic on the Selected Street Towards University : <span class="vc"></span> - <span class="ts"></span></div>
+          <div class="tauss">traffic on the Selected Street Away from University : <span class="vc"></span> - <span class="ts"></span></div>
         </div>
       </div>
     </div>
@@ -159,23 +168,80 @@
           }
           var lat = place.geometry.location.lat();
           var lng = place.geometry.location.lng();
-          var geocoder = new google.maps.Geocoder;
-          var map = new google.maps.Map(document.getElementById('map'), {
-              zoom: 15,
-              center: {
-                lat: lat,
-                lng: lng
-              }
-          });
-          for (var i = 0; i < 20; i++) {
-            var myLatLng = randomGeo({lat: lat, lng: lng}, 200);
-            setMarker(myLatLng, map, geocoder);
+          showAvailableSpaces(lat, lng);
+          showTrafficFlow(lat, lng);
+
+        });
+      }
+      function showTrafficFlow(lat, lng) {
+        var promises = [];
+        var geocoder = new google.maps.Geocoder;
+        var map = new google.maps.Map(document.getElementById('traffic'), {
+          zoom: 16,
+          center: {
+            lat: lat,
+            lng: lng
           }
-          $('.details').show();
-          $('.aps').html(availableParking);
-          $('.ap').html(Math.round((availableParking/totalParkingSpaces)*100) + '%')
+        });
+        for (var i = 0; i < 5; i++) {
+          promises.push(randomTrafficGeo({lat: lat, lng: lng}, 600))
+        }
+        Promise.all(promises).then((responses) =>{
+          var trafficTowardsUniversityVehicalCount = 0;
+          var trafficTowardsUniversityTrafficSummery;
+          var trafficAwayFromUniversityVehicalCount = 0;
+          var trafficAwayFromUniversityTrafficSummery;
+          console.log(responses);
+          responses.forEach((response)=> {
+            if (response.direction === 180) {
+              trafficAwayFromUniversityVehicalCount += Math.round((response.vehicle_count + response.count)/2);
+            } else {
+              trafficTowardsUniversityVehicalCount += Math.round((response.vehicle_count + response.count)/2);
+            }
+            setCamera(response, map, geocoder);
+          })
+          switch (true) {
+            case trafficAwayFromUniversityVehicalCount < 10: trafficAwayFromUniversityTrafficSummery = 'Low Traffic';
+            break;
+            case trafficAwayFromUniversityVehicalCount > 10 && trafficAwayFromUniversityVehicalCount < 30: trafficAwayFromUniversityTrafficSummery = 'Medium Traffic';
+            break;
+            case trafficAwayFromUniversityVehicalCount > 30: trafficAwayFromUniversityTrafficSummery = 'Heavy Traffic';
+            break;
+            default: trafficAwayFromUniversityTrafficSummery = 'Low Traffic';
+          }
+          switch (true) {
+            case trafficTowardsUniversityVehicalCount < 10: trafficTowardsUniversityTrafficSummery = 'Low Traffic';
+              break;
+            case trafficTowardsUniversityVehicalCount > 10 && trafficTowardsUniversityTrafficSummery < 30: trafficAwayFromUniversityTrafficSummery = 'Medium Traffic';
+              break;
+            case trafficTowardsUniversityVehicalCount > 30: trafficTowardsUniversityTrafficSummery = 'Heavy Traffic';
+              break;
+            default: trafficTowardsUniversityTrafficSummery = 'Heavy Traffic';
+          }
+          $('.ttu > .vc').html(trafficTowardsUniversityVehicalCount);
+          $('.ttu > .ts').html(trafficTowardsUniversityTrafficSummery);
+          $('.tau > .vc').html(trafficAwayFromUniversityVehicalCount);
+          $('.tau > .ts').html(trafficAwayFromUniversityTrafficSummery);
+        })
+      }
+      function setCamera(info, map, geocoder) {
+        var infowindow = new google.maps.InfoWindow;
+        var title = 'Traffic Camera';
+        var marker = new google.maps.Marker({
+          position: {lat: info.lat, lng: info.lng},
+          map: map,
+          title: title,
+          icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        });
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+        infowindow.setContent(title);
+      }
+      function snapCoords(lat, lng){
+        return new Promise((resolve, reject) =>{
           var request = {
-            url: 'https://api.darksky.net/forecast/59e81c3cfd57f90ffd1a4a206dc134b8/' + lat +',' + lng,
+            url: 'https://roads.googleapis.com/v1/nearestRoads?points=' + lat +',' + lng +'&key=AIzaSyAoDE7IM9L5aMe6K6m4N47WzvUFCDMztJM',
             type: 'GET',
             dataType: 'jsonp',
           };
@@ -183,20 +249,160 @@
             url: request.url,
             type: 'GET',
             dataType: 'jsonp',
-            jsonpCallback: 'past2callback',
             error: errorHandler,
             cache: true
           }).then((response) => {
-            var todayWeatherData = response.daily.data[0];
-            $('.summary').html(todayWeatherData.summary);
-            $('.temperatureMax').html(todayWeatherData.temperatureMax + 'ºF');
-            $('.temperatureMin').html(todayWeatherData.temperatureMin + 'ºF');
-            $('.windSpeed').html(todayWeatherData.windSpeed + 'mph');
-            $('.humidity').html(todayWeatherData.humidity * 100 + '%')
-          })
+            var simData = genData();
+            if (Array.isArray(response.snappedPoints))
+            {
+              if (response.snappedPoints.length > 0) {
+                var snappedPoints = response.snappedPoints[0].location;
+                resolve ({
+                  'lat': snappedPoints.latitude,
+                  'lng': snappedPoints.longitude,
+                  'direction': simData.direction,
+                  'vehicle_count' : simData.vehicle_count,
+                  'count' : simData.count,
+                });
+              }
+              else{
+                console.log("Rejected because array length is less than 0");
+                resolve({
+                  'lat': lat,
+                  'lng': lng,
+                  'direction': simData.direction,
+                  'vehicle_count' : simData.vehicle_count,
+                  'count' : simData.count,
+                });
+              }
+            }
+            else{
+              console.log("Rejected because object is undefined or not an array");
+              resolve({
+                'lat': lat,
+                'lng': lng,
+                'direction': simData.direction,
+                'vehicle_count' : simData.vehicle_count,
+                'count' : simData.count,
+              });
+            }
+          }).catch(e => {
+            console.log(e);
+          });
         });
       }
-      function randomGeo(center, radius) {
+      function randomTrafficGeo(center, radius) {
+        return new Promise((resolve, reject) =>
+        {
+          var y0 = center.lat;
+          var x0 = center.lng;
+          var rd = radius / 111300; //about 111300 meters in one degree
+          var u = Math.random();
+          var v = Math.random();
+          var w = rd * Math.sqrt(u);
+          var t = 2 * Math.PI * v;
+          var x = w * Math.cos(t);
+          var y = w * Math.sin(t);
+          //Adjust the x-coordinate for the shrinking of the east-west distances
+          var xp = x / Math.cos(y0);
+          var newlat = y + y0;
+          var newlon = x + x0;
+          var newlon2 = xp + x0;
+          snapCoords(newlat, newlon).then(function(response){
+            var variable = response;
+            resolve(response);
+          });
+//      resolve(streetCoords);
+        });
+      }
+        function genData(){
+          var endDate = new Date();
+          var currentHour = endDate.getHours();
+          var direction = 0;
+          var count = Math.floor(Math.random()*20);
+          var vehicle_count = Math.floor(Math.random()*20);
+          if(currentHour > 8 && currentHour <10)
+          {
+            vehicle_count += 60;
+            count = vehicle_count-(count+15);
+          }
+          else if(currentHour > 10 && currentHour < 16)
+          {
+            vehicle_count += 45;
+            count = vehicle_count-(count+35);
+            if(count < 0)
+            {
+              count = Math.abs(count);
+              direction = 180;
+            }
+          }
+          else if(currentHour > 16 && currentHour < 20)
+          {
+            direction = Math.floor(Math.random())+180;
+            var bin_count = Math.random();
+            vehicle_count += 30+bin_count*20;
+            count = vehicle_count-(count+15);
+          }
+          else if(currentHour > 20 && currentHour < 23)
+          {
+            vehicle_count += 10;
+            count = vehicle_count-(count);
+            if(count < 0)
+            {
+              count = Math.abs(count);
+            }
+            direction = 180;
+          }
+          else
+          {
+            direction = 180*Math.floor(Math.random());
+            count = Math.abs((vehicle_count-count));
+          }
+          return{
+            'vehicle_count': vehicle_count,
+            'direction': direction,
+            'count': count,
+          }
+        }
+      function showAvailableSpaces(lat, lng) {
+        var map = new google.maps.Map(document.getElementById('parking'), {
+          zoom: 15,
+          center: {
+            lat: lat,
+            lng: lng
+          }
+        });
+        var geocoder = new google.maps.Geocoder;
+
+        for (var i = 0; i < 20; i++) {
+          var myLatLng = randomParkingGeo({lat: lat, lng: lng}, 200);
+          setMarker(myLatLng, map, geocoder);
+        }
+        $('.details').show();
+        $('.aps').html(availableParking);
+        $('.ap').html(Math.round((availableParking/totalParkingSpaces)*100) + '%')
+        var request = {
+          url: 'https://api.darksky.net/forecast/59e81c3cfd57f90ffd1a4a206dc134b8/' + lat +',' + lng,
+          type: 'GET',
+          dataType: 'jsonp',
+        };
+        $.ajax({
+          url: request.url,
+          type: 'GET',
+          dataType: 'jsonp',
+          jsonpCallback: 'past2callback',
+          error: errorHandler,
+          cache: true
+        }).then((response) => {
+          var todayWeatherData = response.daily.data[0];
+          $('.summary').html(todayWeatherData.summary);
+          $('.temperatureMax').html(todayWeatherData.temperatureMax + 'ºF');
+          $('.temperatureMin').html(todayWeatherData.temperatureMin + 'ºF');
+          $('.windSpeed').html(todayWeatherData.windSpeed + 'mph');
+          $('.humidity').html(todayWeatherData.humidity * 100 + '%')
+        })
+      }
+      function randomParkingGeo(center, radius) {
         var y0 = center.lat;
         var x0 = center.lng;
         var rd = radius / 111300; //about 111300 meters in one degree
