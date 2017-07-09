@@ -187,40 +187,40 @@
           promises.push(randomTrafficGeo({lat: lat, lng: lng}, 600))
         }
         Promise.all(promises).then((responses) =>{
-          var trafficTowardsUniversityVehicalCount = 0;
+          var trafficTowardsUniversityVehicleCount = 0;
           var trafficTowardsUniversityTrafficSummery;
-          var trafficAwayFromUniversityVehicalCount = 0;
+          var trafficAwayFromUniversityVehicleCount = 0;
           var trafficAwayFromUniversityTrafficSummery;
           console.log(responses);
           responses.forEach((response)=> {
             if (response.direction === 180) {
-              trafficAwayFromUniversityVehicalCount += Math.round((response.vehicle_count + response.count)/2);
+              trafficAwayFromUniversityVehicleCount += Math.round((response.vehicle_count + response.count)/2);
             } else {
-              trafficTowardsUniversityVehicalCount += Math.round((response.vehicle_count + response.count)/2);
+              trafficTowardsUniversityVehicleCount += Math.round((response.vehicle_count + response.count)/2);
             }
             setCamera(response, map, geocoder);
           })
           switch (true) {
-            case trafficAwayFromUniversityVehicalCount < 10: trafficAwayFromUniversityTrafficSummery = 'Low Traffic';
+            case trafficAwayFromUniversityVehicleCount < 10: trafficAwayFromUniversityTrafficSummery = 'Low Traffic';
             break;
-            case trafficAwayFromUniversityVehicalCount > 10 && trafficAwayFromUniversityVehicalCount < 30: trafficAwayFromUniversityTrafficSummery = 'Medium Traffic';
+            case trafficAwayFromUniversityVehicleCount > 10 && trafficAwayFromUniversityVehicleCount < 30: trafficAwayFromUniversityTrafficSummery = 'Medium Traffic';
             break;
-            case trafficAwayFromUniversityVehicalCount > 30: trafficAwayFromUniversityTrafficSummery = 'Heavy Traffic';
+            case trafficAwayFromUniversityVehicleCount > 30: trafficAwayFromUniversityTrafficSummery = 'Heavy Traffic';
             break;
             default: trafficAwayFromUniversityTrafficSummery = 'Low Traffic';
           }
           switch (true) {
-            case trafficTowardsUniversityVehicalCount < 10: trafficTowardsUniversityTrafficSummery = 'Low Traffic';
+            case trafficTowardsUniversityVehicleCount < 10: trafficTowardsUniversityTrafficSummery = 'Low Traffic';
               break;
-            case trafficTowardsUniversityVehicalCount > 10 && trafficTowardsUniversityTrafficSummery < 30: trafficAwayFromUniversityTrafficSummery = 'Medium Traffic';
+            case trafficTowardsUniversityVehicleCount > 10 && trafficTowardsUniversityVehicleCount < 30: trafficAwayFromUniversityTrafficSummery = 'Medium Traffic';
               break;
-            case trafficTowardsUniversityVehicalCount > 30: trafficTowardsUniversityTrafficSummery = 'Heavy Traffic';
+            case trafficTowardsUniversityVehicleCount > 30: trafficTowardsUniversityTrafficSummery = 'Heavy Traffic';
               break;
             default: trafficTowardsUniversityTrafficSummery = 'Heavy Traffic';
           }
-          $('.ttu > .vc').html(trafficTowardsUniversityVehicalCount);
+          $('.ttu > .vc').html(trafficTowardsUniversityVehicleCount);
           $('.ttu > .ts').html(trafficTowardsUniversityTrafficSummery);
-          $('.tau > .vc').html(trafficAwayFromUniversityVehicalCount);
+          $('.tau > .vc').html(trafficAwayFromUniversityVehicleCount);
           $('.tau > .ts').html(trafficAwayFromUniversityTrafficSummery);
         })
       }
