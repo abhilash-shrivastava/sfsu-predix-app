@@ -137,8 +137,6 @@
         <div class="details">
           <div class="ttu">Traffic Towards University: <span class="vc"></span> - <span class="ts"></span></div>
           <div class="tau">Traffic Away from University : <span class="vc"></span> - <span class="ts"></span></div>
-          <div class="ttuss">Traffic on the Selected Street Towards University : <span class="vc"></span> - <span class="ts"></span></div>
-          <div class="tauss">traffic on the Selected Street Away from University : <span class="vc"></span> - <span class="ts"></span></div>
         </div>
       </div>
     </div>
@@ -191,14 +189,43 @@
           var trafficTowardsUniversityTrafficSummery;
           var trafficAwayFromUniversityVehicleCount = 0;
           var trafficAwayFromUniversityTrafficSummery;
-          console.log(responses);
           responses.forEach((response)=> {
+            var vehiclesTowardsUniversity = 0;
+            var trafficTowardsUniversity;
+            var vehiclesAwayFromUniversity = 0;
+            var trafficAwayFromUniversity;
             if (response.direction === 180) {
-              trafficAwayFromUniversityVehicleCount += Math.round((response.vehicle_count + response.count)/2);
+              vehiclesAwayFromUniversity = Math.round((response.vehicle_count + response.count)/2);
+              vehiclesTowardsUniversity = response.vehicle_count - vehiclesAwayFromUniversity;
+              trafficAwayFromUniversityVehicleCount += vehiclesAwayFromUniversity;
             } else {
-              trafficTowardsUniversityVehicleCount += Math.round((response.vehicle_count + response.count)/2);
+              vehiclesTowardsUniversity = Math.round((response.vehicle_count + response.count)/2);
+              vehiclesAwayFromUniversity = response.vehicle_count - vehiclesTowardsUniversity;
+              trafficTowardsUniversityVehicleCount += vehiclesTowardsUniversity;
             }
-            setCamera(response, map, geocoder);
+            switch (true) {
+              case vehiclesAwayFromUniversity < 5: trafficAwayFromUniversity = 'Low Traffic';
+                break;
+              case vehiclesAwayFromUniversity > 5 && vehiclesAwayFromUniversity < 15: trafficAwayFromUniversity = 'Medium Traffic';
+                break;
+              case vehiclesAwayFromUniversity > 15: trafficAwayFromUniversity = 'Heavy Traffic';
+                break;
+              default: vehiclesAwayFromUniversity = 'Low Traffic';
+            }
+            switch (true) {
+              case vehiclesTowardsUniversity < 5: trafficTowardsUniversity = 'Low Traffic';
+                break;
+              case vehiclesTowardsUniversity > 5 && vehiclesTowardsUniversity < 15: trafficTowardsUniversity = 'Medium Traffic';
+                break;
+              case vehiclesTowardsUniversity > 15: trafficTowardsUniversity = 'Heavy Traffic';
+                break;
+              default: vehiclesTowardsUniversity = 'Low Traffic';
+            }
+            var marketTitle = 'Vehicle Towards University: ' + vehiclesTowardsUniversity + '\n' +
+              'Traffic Towards the University' + trafficTowardsUniversity + '\n' +
+              'Vehicle Away from University: ' + vehiclesAwayFromUniversity + '\n' +
+              'Traffic Away From the University' + trafficAwayFromUniversity + '\n';
+            setCamera(response, map, geocoder, marketTitle);
           })
           switch (true) {
             case trafficAwayFromUniversityVehicleCount < 10: trafficAwayFromUniversityTrafficSummery = 'Low Traffic';
@@ -224,9 +251,8 @@
           $('.tau > .ts').html(trafficAwayFromUniversityTrafficSummery);
         })
       }
-      function setCamera(info, map, geocoder) {
+      function setCamera(info, map, geocoder, title) {
         var infowindow = new google.maps.InfoWindow;
-        var title = 'Traffic Camera';
         var marker = new google.maps.Marker({
           position: {lat: info.lat, lng: info.lng},
           map: map,
