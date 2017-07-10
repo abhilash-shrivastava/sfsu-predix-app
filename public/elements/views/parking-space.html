@@ -104,6 +104,28 @@
         height: 500px;
         display: none;
       }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+      #floating-panel {
+        background-color: #fff;
+        border: 1px solid #999;
+        left: 25%;
+        padding: 5px;
+        position: absolute;
+        top: 10px;
+        z-index: 5;
+      }
     </style>
     <div>
       <div id="title">
@@ -139,6 +161,13 @@
           <div class="tau">Traffic Away from University : <span class="vc"></span> - <span class="ts"></span></div>
         </div>
       </div>
+      <div class="horizontal-flex">
+        <div id="pedestrian" style="width: 500px; height: 500px;"></div>
+        <div class="details">
+          <div class="ttu">Traffic Towards University: <span class="vc"></span> - <span class="ts"></span></div>
+          <div class="tau">Traffic Away from University : <span class="vc"></span> - <span class="ts"></span></div>
+        </div>
+      </div>
     </div>
     <div id="infowindow-content">
       <img src="" width="16" height="16" id="place-icon">
@@ -152,6 +181,7 @@
       const http = new XMLHttpRequest();
       var availableParking = 0;
       var totalParkingSpaces = 20;
+      var map, heatmap;
       function initMap() {
         var card = document.getElementById('pac-card');
         var input = document.getElementById('pac-input');
@@ -168,9 +198,254 @@
           var lng = place.geometry.location.lng();
           showAvailableSpaces(lat, lng);
           showTrafficFlow(lat, lng);
-
+          showPedestrianData(lat, lng);
         });
       }
+      function showPedestrianData(lat, lng) {
+        var sfsu_LatLng = {lat: lat, lng: lng};
+        map = new google.maps.Map(document.getElementById('pedestrian'), {
+          zoom: 13,
+          center: sfsu_LatLng,
+          //mapTypeId: 'satellite'
+        });
+        var marker_locations = set_Markers(map);
+
+        generate_pedestrians(marker_locations[0],marker_locations[1],map);
+      }
+      function toggleHeatmap() {
+        heatmap.setMap(heatmap.getMap() ? null : map);
+      }
+      function changeGradient() {
+        var gradient = [
+          'rgba(0, 255, 255, 0)',
+          'rgba(0, 255, 255, 1)',
+          'rgba(0, 191, 255, 1)',
+          'rgba(0, 127, 255, 1)',
+          'rgba(0, 63, 255, 1)',
+          'rgba(0, 0, 255, 1)',
+          'rgba(0, 0, 223, 1)',
+          'rgba(0, 0, 191, 1)',
+          'rgba(0, 0, 159, 1)',
+          'rgba(0, 0, 127, 1)',
+          'rgba(63, 0, 91, 1)',
+          'rgba(127, 0, 63, 1)',
+          'rgba(191, 0, 31, 1)',
+          'rgba(255, 0, 0, 1)'
+        ]
+        heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+      }
+      function changeRadius() {
+        heatmap.set('radius', heatmap.get('radius') ? null : 20);
+      }
+
+      function changeOpacity() {
+        heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
+      }
+
+      function generateLocations(center, radius, count){
+        var locations = [];
+        for(var i=0;i<count;i++){
+          locations.push(generateLocation(center,radius));
+        }
+        console.log(locations);
+        return locations;
+      }
+
+      function generateLocation(center,radius){
+        var x0 = center.lng;
+        var y0 = center.lat;
+
+        // Convert Radius from meters to degrees.
+        var rd = radius/111300;
+
+        var u = Math.random();
+        var v = Math.random();
+
+        var w = rd * Math.sqrt(u);
+        var t = 2 * Math.PI * v;
+        var x = w * Math.cos(t);
+        var y = w * Math.sin(t);
+
+        var xp = x/Math.cos(y0);
+
+        // Resulting point.
+        return {'lat': y+y0, 'lng': xp+x0};
+      }
+      var array = [];
+
+      function points(ped_locations) {
+        //var randomGeoPoint = generateLocations({'lat': 37.7219, 'lng': -122.4782}, 427.6955, 500);
+
+        switch (ped_locations.length){
+
+          case 5:
+            return[
+              new google.maps.LatLng(ped_locations[0].lat,ped_locations[0].lng),
+              new google.maps.LatLng(ped_locations[1].lat,ped_locations[1].lng),
+              new google.maps.LatLng(ped_locations[2].lat,ped_locations[2].lng),
+              new google.maps.LatLng(ped_locations[3].lat,ped_locations[3].lng),
+              new google.maps.LatLng(ped_locations[4].lat,ped_locations[4].lng)
+            ];
+          case 6:
+            return[
+              new google.maps.LatLng(ped_locations[0].lat,ped_locations[0].lng),
+              new google.maps.LatLng(ped_locations[1].lat,ped_locations[1].lng),
+              new google.maps.LatLng(ped_locations[2].lat,ped_locations[2].lng),
+              new google.maps.LatLng(ped_locations[3].lat,ped_locations[3].lng),
+              new google.maps.LatLng(ped_locations[4].lat,ped_locations[4].lng),
+              new google.maps.LatLng(ped_locations[5].lat,ped_locations[5].lng)
+            ];
+          case 7:
+            return[
+              new google.maps.LatLng(ped_locations[0].lat,ped_locations[0].lng),
+              new google.maps.LatLng(ped_locations[1].lat,ped_locations[1].lng),
+              new google.maps.LatLng(ped_locations[2].lat,ped_locations[2].lng),
+              new google.maps.LatLng(ped_locations[3].lat,ped_locations[3].lng),
+              new google.maps.LatLng(ped_locations[4].lat,ped_locations[4].lng),
+              new google.maps.LatLng(ped_locations[5].lat,ped_locations[5].lng),
+              new google.maps.LatLng(ped_locations[6].lat,ped_locations[6].lng)
+            ];
+          case 8:
+            return[
+              new google.maps.LatLng(ped_locations[0].lat,ped_locations[0].lng),
+              new google.maps.LatLng(ped_locations[1].lat,ped_locations[1].lng),
+              new google.maps.LatLng(ped_locations[2].lat,ped_locations[2].lng),
+              new google.maps.LatLng(ped_locations[3].lat,ped_locations[3].lng),
+              new google.maps.LatLng(ped_locations[4].lat,ped_locations[4].lng),
+              new google.maps.LatLng(ped_locations[5].lat,ped_locations[5].lng),
+              new google.maps.LatLng(ped_locations[6].lat,ped_locations[6].lng),
+              new google.maps.LatLng(ped_locations[7].lat,ped_locations[7].lng)
+            ];
+          case 9:
+            return[
+              new google.maps.LatLng(ped_locations[0].lat,ped_locations[0].lng),
+              new google.maps.LatLng(ped_locations[1].lat,ped_locations[1].lng),
+              new google.maps.LatLng(ped_locations[2].lat,ped_locations[2].lng),
+              new google.maps.LatLng(ped_locations[3].lat,ped_locations[3].lng),
+              new google.maps.LatLng(ped_locations[4].lat,ped_locations[4].lng),
+              new google.maps.LatLng(ped_locations[5].lat,ped_locations[5].lng),
+              new google.maps.LatLng(ped_locations[6].lat,ped_locations[6].lng),
+              new google.maps.LatLng(ped_locations[7].lat,ped_locations[7].lng),
+              new google.maps.LatLng(ped_locations[8].lat,ped_locations[8].lng)
+            ];
+          case 10:
+            return[
+              new google.maps.LatLng(ped_locations[0].lat,ped_locations[0].lng),
+              new google.maps.LatLng(ped_locations[1].lat,ped_locations[1].lng),
+              new google.maps.LatLng(ped_locations[2].lat,ped_locations[2].lng),
+              new google.maps.LatLng(ped_locations[3].lat,ped_locations[3].lng),
+              new google.maps.LatLng(ped_locations[4].lat,ped_locations[4].lng),
+              new google.maps.LatLng(ped_locations[5].lat,ped_locations[5].lng),
+              new google.maps.LatLng(ped_locations[6].lat,ped_locations[6].lng),
+              new google.maps.LatLng(ped_locations[7].lat,ped_locations[7].lng),
+              new google.maps.LatLng(ped_locations[8].lat,ped_locations[8].lng),
+              new google.maps.LatLng(ped_locations[9].lat,ped_locations[9].lng)
+            ];
+        }
+
+      }
+
+      function set_Markers(map){
+        var sfsu_LatLng = generateLocations({'lat':37.72364  , 'lng':-122.478387}, 350, 20);
+        var location;
+        var markers = {};
+        for (var i = 0; i < sfsu_LatLng.length; i++) {
+          location = sfsu_LatLng[i].lat + "," + sfsu_LatLng[i].lng;
+          marker = new google.maps.Marker({
+            position: {lat: sfsu_LatLng[i].lat, lng: sfsu_LatLng[i].lng},
+            map: map,
+            title: location
+          });
+          markers[sfsu_LatLng[i].lat] = marker;
+        }
+        return [sfsu_LatLng,markers];
+      }
+
+      function generate_pedestrians(marker_locations,markers,map) {
+        console.log(marker_locations[i]);
+        var marker_location;
+        var updated_marker;
+        var new_location;
+        var ped_data = [];
+        for(var i=0; marker_locations.length;i++){
+
+          var towards_location = [];
+          var away_location = [];
+          var net_direction = [];
+          marker_location = marker_locations[i];
+          var ped_count = randomIntFromInterval(5,10);    // Generates a random number between [5,10]
+          var ped_locations = generateLocations({'lat':marker_location.lat  , 'lng':marker_location.lng}, 50, ped_count);
+          ped_data.push(generate_direction(ped_count));
+          heatmap = new google.maps.visualization.HeatmapLayer({
+            data: points(ped_locations),
+            map: map
+          });
+
+//                  for(var j=0;j<ped_locations.length;j++){
+//                      ped_location = ped_locations[i];
+//                      heatmap = new google.maps.visualization.HeatmapLayer({
+//                          data: point(ped_location),
+//                          map: map
+//                      });
+//                  }
+          new_location = "lat:"+marker_location.lat + "," + "lng:"+marker_location.lng + "," + "inwards(0):" + ped_data[i].in_count + "," + "outwards(180):"+ ped_data[i].out_count
+            + "," + "net_direction:"+ped_data[i].net_direction;
+          updated_marker = markers[marker_location.lat];
+          updated_marker.setTitle(new_location);
+        }
+        return ped_data;
+      }
+
+      function generate_direction(ped_count) {
+        var ped_directions = [];
+        for (var k = 0; k < ped_count; k++) {
+          ped_directions.push(Math.floor((Math.random() * 2)));
+        }
+        var in_count = 0;
+        var out_count = 0;
+        var net_direction = 0;
+        for (var p = 0; p < ped_directions.length; p++){
+          if (ped_directions[p] == 0) {
+            in_count = in_count + 1;
+          }
+          else {
+            out_count = out_count + 1;
+          }
+        }
+        if (in_count< out_count) {
+          net_direction = 180;
+        }
+        else if(in_count>out_count){
+          net_direction = 0;
+        }
+        else{
+          net_direction=-1;
+        }
+        return {'ped_dir':ped_directions,'in_count': in_count,'out_count':out_count,'net_direction':net_direction};
+      }
+
+      function randomIntFromInterval(min,max)
+      {
+        return Math.floor(Math.random()*(max-min+1)+min);
+      }
+
+      function point(ped_location) {
+        return [
+          new google.maps.LatLng(ped_location.lat, ped_location.lng)
+        ];
+      }
+
+      function update_marker_title(ped_data,marker_id){
+
+      }
+
+      // code for pedestrian data ends
+
+
+
+
+
+      // code for traffic flow starts
       function showTrafficFlow(lat, lng) {
         var promises = [];
         var geocoder = new google.maps.Geocoder;
@@ -396,6 +671,11 @@
             'count': count,
           }
         }
+
+        // code for traffic flow ends
+
+
+      // codes for parking space starts
       function showAvailableSpaces(lat, lng) {
         var map = new google.maps.Map(document.getElementById('parking'), {
           zoom: 15,
@@ -485,8 +765,10 @@
         });
         infowindow.setContent(title);
       }
+
+      // code for parking ends
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXd8KlVO4CH52NrFf1yrWQEbPJAd0Zjg4&libraries=places&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXd8KlVO4CH52NrFf1yrWQEbPJAd0Zjg4&libraries=places,visualization&callback=initMap"
             async defer></script>
   </template>
   <script>
