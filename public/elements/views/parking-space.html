@@ -195,13 +195,19 @@
             var vehiclesAwayFromUniversity = 0;
             var trafficAwayFromUniversity;
             if (response.direction === 180) {
-              vehiclesAwayFromUniversity = Math.round((response.vehicle_count + response.count)/2);
-              vehiclesTowardsUniversity = response.vehicle_count - vehiclesAwayFromUniversity;
+              vehiclesAwayFromUniversity = Math.round((response.vehicle_count + response.count)/2) > 0 ? Math.round((response.vehicle_count + response.count)/2): 1;
+              vehiclesTowardsUniversity = (response.vehicle_count - vehiclesAwayFromUniversity) > 0 ? (response.vehicle_count - vehiclesAwayFromUniversity): 1;
               trafficAwayFromUniversityVehicleCount += vehiclesAwayFromUniversity;
             } else {
-              vehiclesTowardsUniversity = Math.round((response.vehicle_count + response.count)/2);
-              vehiclesAwayFromUniversity = response.vehicle_count - vehiclesTowardsUniversity;
+              vehiclesTowardsUniversity = Math.round((response.vehicle_count + response.count)/2) > 0 ? Math.round((response.vehicle_count + response.count)/2): 1;
+              vehiclesAwayFromUniversity = (response.vehicle_count - vehiclesTowardsUniversity) > 0 ? (response.vehicle_count - vehiclesTowardsUniversity): 1;
               trafficTowardsUniversityVehicleCount += vehiclesTowardsUniversity;
+            }
+            if (trafficAwayFromUniversityVehicleCount === 0) {
+              trafficAwayFromUniversityVehicleCount = 5;
+            }
+            if (trafficTowardsUniversityVehicleCount === 0) {
+              trafficTowardsUniversityVehicleCount = 5;
             }
             switch (true) {
               case vehiclesAwayFromUniversity < 5: trafficAwayFromUniversity = 'Low Traffic';
