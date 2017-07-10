@@ -164,8 +164,9 @@
       <div class="horizontal-flex">
         <div id="pedestrian" style="width: 500px; height: 500px;"></div>
         <div class="details">
-          <div class="ttu">Traffic Towards University: <span class="vc"></span> - <span class="ts"></span></div>
-          <div class="tau">Traffic Away from University : <span class="vc"></span> - <span class="ts"></span></div>
+          <div class="tpc">Total pedestrian in the campus: <span class="pc"></span> - <span class="ps"></span></div>
+          <div class="ptu">Pedestrian going towards campus : <span class="pc"></span> - <span class="ps"></span></div>
+          <div class="pau">Pedestrian going away from campus : <span class="pc"></span> - <span class="ps"></span></div>
         </div>
       </div>
     </div>
@@ -204,13 +205,57 @@
       function showPedestrianData(lat, lng) {
         var sfsu_LatLng = {lat: lat, lng: lng};
         map = new google.maps.Map(document.getElementById('pedestrian'), {
-          zoom: 13,
+          zoom: 16,
           center: sfsu_LatLng,
           //mapTypeId: 'satellite'
         });
         var marker_locations = set_Markers(map);
 
-        generate_pedestrians(marker_locations[0],marker_locations[1],map);
+        var pedestrianData = generate_pedestrians(marker_locations[0],marker_locations[1],map);
+        var pedestrianTowardsUniversityPedestrianCount = 0;
+        var pedestrianTowardsUniversityPedestrianSummery;
+        var pedestrianAwayFromUniversityPedestrianCount = 0;
+        var pedestrianAwayFromUniversityPedestrianSummery;
+        var totalPedestrian = 0;
+        var totalPedestrianSummary;
+        pedestrianData.forEach((pedestrian)=> {
+          pedestrianAwayFromUniversityPedestrianCount += pedestrian.out_count;
+          pedestrianTowardsUniversityPedestrianCount += pedestrian.in_count;
+        })
+        totalPedestrian = pedestrianAwayFromUniversityPedestrianCount + pedestrianTowardsUniversityPedestrianCount;
+        switch (true) {
+          case pedestrianAwayFromUniversityPedestrianCount < 30: pedestrianAwayFromUniversityPedestrianSummery = 'Low Crowded';
+            break;
+          case pedestrianAwayFromUniversityPedestrianCount > 30 && pedestrianAwayFromUniversityPedestrianCount < 60: pedestrianAwayFromUniversityPedestrianSummery = 'Medium Crowded';
+            break;
+          case pedestrianAwayFromUniversityPedestrianCount > 80: pedestrianAwayFromUniversityPedestrianSummery = 'Heavy Crowded';
+            break;
+          default: pedestrianAwayFromUniversityPedestrianSummery = 'Low Traffic';
+        }
+        switch (true) {
+          case pedestrianTowardsUniversityPedestrianCount < 30: pedestrianTowardsUniversityPedestrianSummery = 'Low Crowded';
+            break;
+          case pedestrianTowardsUniversityPedestrianCount > 30 && pedestrianTowardsUniversityPedestrianCount < 60: pedestrianAwayFromUniversityPedestrianSummery = 'Medium Crowded';
+            break;
+          case pedestrianTowardsUniversityPedestrianCount > 80: pedestrianTowardsUniversityPedestrianSummery = 'Heavy Crowded';
+            break;
+          default: pedestrianTowardsUniversityPedestrianSummery = 'Heavy Traffic';
+        }
+        switch (true) {
+          case totalPedestrian < 60: totalPedestrianSummary = 'Low Crowded';
+            break;
+          case totalPedestrian > 60 && totalPedestrianSummary < 160: totalPedestrianSummary = 'Medium Crowded';
+            break;
+          case totalPedestrian > 160: totalPedestrianSummary = 'Heavy Crowded';
+            break;
+          default: totalPedestrianSummary = 'Heavy Crowded';
+        }
+        $('.tpc > .pc').html(totalPedestrian);
+        $('.tpc > .ps').html(totalPedestrianSummary);
+        $('.ptu > .pc').html(pedestrianTowardsUniversityPedestrianCount);
+        $('.ptu > .ps').html(pedestrianTowardsUniversityPedestrianSummery);
+        $('.pau > .pc').html(pedestrianAwayFromUniversityPedestrianCount);
+        $('.pau > .ps').html(pedestrianAwayFromUniversityPedestrianSummery);
       }
       function toggleHeatmap() {
         heatmap.setMap(heatmap.getMap() ? null : map);
@@ -247,7 +292,6 @@
         for(var i=0;i<count;i++){
           locations.push(generateLocation(center,radius));
         }
-        console.log(locations);
         return locations;
       }
 
@@ -354,7 +398,8 @@
           marker = new google.maps.Marker({
             position: {lat: sfsu_LatLng[i].lat, lng: sfsu_LatLng[i].lng},
             map: map,
-            title: location
+            title: location,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
           });
           markers[sfsu_LatLng[i].lat] = marker;
         }
@@ -362,16 +407,16 @@
       }
 
       function generate_pedestrians(marker_locations,markers,map) {
-        console.log(marker_locations[i]);
         var marker_location;
         var updated_marker;
         var new_location;
         var ped_data = [];
-        for(var i=0; marker_locations.length;i++){
+        for(var i=0; i < marker_locations.length;i++){
 
           var towards_location = [];
           var away_location = [];
           var net_direction = [];
+          var infowindow = new google.maps.InfoWindow;
           marker_location = marker_locations[i];
           var ped_count = randomIntFromInterval(5,10);    // Generates a random number between [5,10]
           var ped_locations = generateLocations({'lat':marker_location.lat  , 'lng':marker_location.lng}, 50, ped_count);
@@ -380,18 +425,14 @@
             data: points(ped_locations),
             map: map
           });
-
-//                  for(var j=0;j<ped_locations.length;j++){
-//                      ped_location = ped_locations[i];
-//                      heatmap = new google.maps.visualization.HeatmapLayer({
-//                          data: point(ped_location),
-//                          map: map
-//                      });
-//                  }
           new_location = "lat:"+marker_location.lat + "," + "lng:"+marker_location.lng + "," + "inwards(0):" + ped_data[i].in_count + "," + "outwards(180):"+ ped_data[i].out_count
             + "," + "net_direction:"+ped_data[i].net_direction;
           updated_marker = markers[marker_location.lat];
           updated_marker.setTitle(new_location);
+          updated_marker.addListener('click', function() {
+            infowindow.open(map, updated_marker);
+          });
+          infowindow.setContent(new_location);
         }
         return ped_data;
       }
